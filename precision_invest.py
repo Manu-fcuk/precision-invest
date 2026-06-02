@@ -16,12 +16,6 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import streamlit_authenticator as stauth
 
-# Bypassing Yahoo Finance Cloud Blocks
-yf_session = requests.Session()
-yf_session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-})
-
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 1. PAGE CONFIG & THEME
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -221,7 +215,7 @@ def fetch_sp500_wiki():
 @st.cache_data(ttl=86400, show_spinner=False)
 def fetch_benchmark(period="5y"):
     """Downloads S&P 500 benchmark data."""
-    data = yf.download("^GSPC", period=period, progress=False, auto_adjust=True, session=yf_session)["Close"]
+    data = yf.download("^GSPC", period=period, progress=False, auto_adjust=True)["Close"]
     if isinstance(data, pd.DataFrame):
         data = data.iloc[:, 0]
     return data.dropna()
@@ -231,7 +225,7 @@ def fetch_benchmark(period="5y"):
 def fetch_vix():
     """Downloads VIX data."""
     try:
-        data = yf.download("^VIX", period="1y", progress=False, auto_adjust=True, session=yf_session)["Close"]
+        data = yf.download("^VIX", period="1y", progress=False, auto_adjust=True)["Close"]
         if isinstance(data, pd.DataFrame):
             data = data.iloc[:, 0]
         return data.dropna()
@@ -378,7 +372,7 @@ def calc_breadth_cached(period="1y"):
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i : i + batch_size]
         try:
-            data = yf.download(batch, period=period, progress=False, auto_adjust=True, session=yf_session)["Close"]
+            data = yf.download(batch, period=period, progress=False, auto_adjust=True)["Close"]
             if isinstance(data, pd.Series):
                 data = data.to_frame()
             for col in data.columns:
@@ -640,7 +634,7 @@ with tab2:
 
                 try:
                     data = yf.download(
-                        batch, period="2y", progress=False, auto_adjust=True, session=yf_session
+                        batch, period="2y", progress=False, auto_adjust=True
                     )["Close"]
                     if isinstance(data, pd.Series):
                         data = data.to_frame(name=batch[0])
@@ -708,7 +702,7 @@ with tab2:
                 top_tickers_list = df_results["Ticker"].tolist()
                 
                 # Download prices for the selected top tickers
-                corr_prices = yf.download(top_tickers_list, period="6mo", progress=False, auto_adjust=True, session=yf_session)["Close"]
+                corr_prices = yf.download(top_tickers_list, period="6mo", progress=False, auto_adjust=True)["Close"]
                 if isinstance(corr_prices, pd.Series):
                     corr_prices = corr_prices.to_frame(name=top_tickers_list[0])
                 
