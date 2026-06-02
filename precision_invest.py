@@ -16,6 +16,12 @@ from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
 import streamlit_authenticator as stauth
 
+# Bypassing Yahoo Finance Cloud Blocks
+yf_session = requests.Session()
+yf_session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+})
+
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 # 1. PAGE CONFIG & THEME
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -215,7 +221,7 @@ def fetch_sp500_wiki():
 @st.cache_data(ttl=86400, show_spinner=False)
 def fetch_benchmark(period="5y"):
     """Downloads S&P 500 benchmark data."""
-    data = yf.download("^GSPC", period=period, progress=False, auto_adjust=True)["Close"]
+    data = yf.download("^GSPC", period=period, progress=False, auto_adjust=True, session=yf_session)["Close"]
     if isinstance(data, pd.DataFrame):
         data = data.iloc[:, 0]
     return data.dropna()
@@ -225,7 +231,7 @@ def fetch_benchmark(period="5y"):
 def fetch_vix():
     """Downloads VIX data."""
     try:
-        data = yf.download("^VIX", period="1y", progress=False, auto_adjust=True)["Close"]
+        data = yf.download("^VIX", period="1y", progress=False, auto_adjust=True, session=yf_session)["Close"]
         if isinstance(data, pd.DataFrame):
             data = data.iloc[:, 0]
         return data.dropna()
@@ -372,7 +378,7 @@ def calc_breadth_cached(period="1y"):
     for i in range(0, len(tickers), batch_size):
         batch = tickers[i : i + batch_size]
         try:
-            data = yf.download(batch, period=period, progress=False, auto_adjust=True)["Close"]
+            data = yf.download(batch, period=period, progress=False, auto_adjust=True, session=yf_session)["Close"]
             if isinstance(data, pd.Series):
                 data = data.to_frame()
             for col in data.columns:
@@ -430,6 +436,11 @@ with st.sidebar:
 
 with st.spinner("🔄 Terminal-Daten werden synchronisiert..."):
     bm_prices = fetch_benchmark("5y")
+    
+    if bm_prices is None or bm_prices.empty:
+        st.error("⚠️ Fehler: Konnte keine Marktdaten von Yahoo Finance abrufen. Streamlit Cloud IPs werden manchmal von Yahoo blockiert. Bitte lade die Seite in ein paar Minuten neu.")
+        st.stop()
+        
     vix_data = fetch_vix()
 
 regime_label, is_bull = get_market_regime(bm_prices)
@@ -629,7 +640,7 @@ with tab2:
 
                 try:
                     data = yf.download(
-                        batch, period="2y", progress=False, auto_adjust=True
+                        batch, period="2y", progress=False, auto_adjust=True, session=yf_session
                     )["Close"]
                     if isinstance(data, pd.Series):
                         data = data.to_frame(name=batch[0])
@@ -696,8 +707,8 @@ with tab2:
                 st.markdown("#### 🔗 Correlation Matrix (Top 15)")
                 top_tickers_list = df_results["Ticker"].tolist()
                 
-                # Fetch recent daily prices for correlation
-                corr_prices = yf.download(top_tickers_list, period="6mo", progress=False, auto_adjust=True)["Close"]
+                # Download prices for the selected top tickers
+                corr_prices = yf.download(top_tickers_list, period="6mo", progress=False, auto_adjust=True, session=yf_session)["Close"]
                 if isinstance(corr_prices, pd.Series):
                     corr_prices = corr_prices.to_frame(name=top_tickers_list[0])
                 
@@ -775,6 +786,7 @@ with tab3:
                         end=end_date.strftime("%Y-%m-%d"),
                         progress=False,
                         auto_adjust=True,
+                        session=yf_session
                     )["Close"]
                     if isinstance(batch_data, pd.Series):
                         batch_data = batch_data.to_frame(name=batch[0])
@@ -797,6 +809,7 @@ with tab3:
                 end=end_date.strftime("%Y-%m-%d"),
                 progress=False,
                 auto_adjust=True,
+                session=yf_session
             )["Close"]
             if isinstance(bm_bt, pd.DataFrame):
                 bm_bt = bm_bt.iloc[:, 0]
