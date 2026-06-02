@@ -195,7 +195,8 @@ def fetch_sp500_wiki():
         # We use a reliable, automatically updated open-source GitHub dataset instead of Wikipedia 
         # to prevent Streamlit Cloud from being blocked as a bot.
         url = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
-        df = pd.read_csv(url)
+        csv_text = requests.get(url, timeout=10).text
+        df = pd.read_csv(io.StringIO(csv_text))
         
         tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
         sectors = dict(zip(tickers, df["GICS Sector"]))
