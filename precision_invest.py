@@ -779,8 +779,7 @@ with tab3:
                         start=prefetch_start.strftime("%Y-%m-%d"),
                         end=end_date.strftime("%Y-%m-%d"),
                         progress=False,
-                        auto_adjust=True,
-                        session=yf_session
+                        auto_adjust=True
                     )["Close"]
                     if isinstance(batch_data, pd.Series):
                         batch_data = batch_data.to_frame(name=batch[0])
@@ -802,8 +801,7 @@ with tab3:
                 start=prefetch_start.strftime("%Y-%m-%d"),
                 end=end_date.strftime("%Y-%m-%d"),
                 progress=False,
-                auto_adjust=True,
-                session=yf_session
+                auto_adjust=True
             )["Close"]
             if isinstance(bm_bt, pd.DataFrame):
                 bm_bt = bm_bt.iloc[:, 0]
