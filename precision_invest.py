@@ -185,29 +185,18 @@ st.markdown("""
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# 2. CORE ENGINE FUNCTIONS
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 def fetch_sp500_wiki():
-    """Fetches S&P 500 ticker list from Wikipedia."""
-    try:
-        # We use a static local CSV file because the Streamlit Cloud shared IPs 
-        # get severely rate-limited by both Wikipedia and GitHub Raw Content domains.
-        import os
-        csv_path = os.path.join(os.path.dirname(__file__), "sp500_tickers.csv")
-        df = pd.read_csv(csv_path)
-        
-        tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
-        sectors = dict(zip(tickers, df["GICS Sector"]))
-        names = dict(zip(tickers, df["Security"]))
-        
-        return tickers, sectors, names
-    except Exception as e:
-        import streamlit as st
-        st.warning(f"⚠️ Lokale S&P 500 Liste konnte nicht geladen werden ({str(e)}). Verwende Notfall-Liste (12 Ticker).")
-        fallback = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META",
-                     "TSLA", "BRK-B", "JPM", "V", "UNH", "LLY"]
-        return fallback, {}, {}
+    # We use a static local CSV file because the Streamlit Cloud shared IPs 
+    # get severely rate-limited by both Wikipedia and GitHub Raw Content domains.
+    import os
+    csv_path = os.path.join(os.path.dirname(__file__), "sp500_tickers.csv")
+    df = pd.read_csv(csv_path)
+    
+    tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
+    sectors = dict(zip(tickers, df["GICS Sector"]))
+    names = dict(zip(tickers, df["Security"]))
+    
+    return tickers, sectors, names
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
