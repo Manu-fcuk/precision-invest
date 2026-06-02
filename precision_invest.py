@@ -188,13 +188,14 @@ st.markdown("""
 # 2. CORE ENGINE FUNCTIONS
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-@st.cache_data(ttl=3600, show_spinner=False)
 def fetch_sp500_wiki():
     """Fetches S&P 500 ticker list from Wikipedia."""
     try:
         # We use a static local CSV file because the Streamlit Cloud shared IPs 
         # get severely rate-limited by both Wikipedia and GitHub Raw Content domains.
-        df = pd.read_csv("sp500_tickers.csv")
+        import os
+        csv_path = os.path.join(os.path.dirname(__file__), "sp500_tickers.csv")
+        df = pd.read_csv(csv_path)
         
         tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
         sectors = dict(zip(tickers, df["GICS Sector"]))
@@ -204,7 +205,6 @@ def fetch_sp500_wiki():
     except Exception as e:
         import streamlit as st
         st.warning(f"⚠️ Lokale S&P 500 Liste konnte nicht geladen werden ({str(e)}). Verwende Notfall-Liste (12 Ticker).")
-        fetch_sp500_wiki.clear() # Clear cache so it tries again next time
         fallback = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META",
                      "TSLA", "BRK-B", "JPM", "V", "UNH", "LLY"]
         return fallback, {}, {}
