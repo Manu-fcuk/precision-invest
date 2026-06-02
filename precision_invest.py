@@ -192,10 +192,16 @@ st.markdown("""
 def fetch_sp500_wiki():
     """Fetches S&P 500 ticker list from Wikipedia."""
     try:
-        import json
-        with open("sp500_data.json", "r") as f:
-            data = json.load(f)
-        return data["tickers"], data["sectors"], data["names"]
+        # We use a reliable, automatically updated open-source GitHub dataset instead of Wikipedia 
+        # to prevent Streamlit Cloud from being blocked as a bot.
+        url = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
+        df = pd.read_csv(url)
+        
+        tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
+        sectors = dict(zip(tickers, df["GICS Sector"]))
+        names = dict(zip(tickers, df["Security"]))
+        
+        return tickers, sectors, names
     except Exception as e:
         import streamlit as st
         st.warning(f"⚠️ Lokale S&P 500 Liste konnte nicht geladen werden ({str(e)}). Verwende Notfall-Liste (12 Ticker).")
