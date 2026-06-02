@@ -195,7 +195,8 @@ def fetch_sp500_wiki():
         # We use a reliable, automatically updated open-source GitHub dataset instead of Wikipedia 
         # to prevent Streamlit Cloud from being blocked as a bot.
         url = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
-        csv_text = requests.get(url, timeout=10).text
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+        csv_text = requests.get(url, headers=headers, timeout=10).text
         df = pd.read_csv(io.StringIO(csv_text))
         
         tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
@@ -206,6 +207,7 @@ def fetch_sp500_wiki():
     except Exception as e:
         import streamlit as st
         st.warning(f"⚠️ Lokale S&P 500 Liste konnte nicht geladen werden ({str(e)}). Verwende Notfall-Liste (12 Ticker).")
+        fetch_sp500_wiki.clear() # Clear cache so it tries again next time
         fallback = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META",
                      "TSLA", "BRK-B", "JPM", "V", "UNH", "LLY"]
         return fallback, {}, {}
