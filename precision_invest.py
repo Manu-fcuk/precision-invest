@@ -776,7 +776,7 @@ with tab3:
                     batch_data = yf.download(
                         batch,
                         start=prefetch_start.strftime("%Y-%m-%d"),
-                        end=end_date.strftime("%Y-%m-%d"),
+                        end=(end_date + timedelta(days=1)).strftime("%Y-%m-%d"),
                         progress=False,
                         auto_adjust=True
                     )["Close"]
@@ -798,7 +798,7 @@ with tab3:
             bm_bt = yf.download(
                 "^GSPC",
                 start=prefetch_start.strftime("%Y-%m-%d"),
-                end=end_date.strftime("%Y-%m-%d"),
+                end=(end_date + timedelta(days=1)).strftime("%Y-%m-%d"),
                 progress=False,
                 auto_adjust=True
             )["Close"]
