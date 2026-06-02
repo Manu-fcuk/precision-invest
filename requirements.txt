@@ -5,4 +5,4 @@ yfinance>=0.2.36
 plotly>=5.18.0
 streamlit-authenticator==0.4.2
 requests
-matplotlib>=3.8.0
+matplotlib
