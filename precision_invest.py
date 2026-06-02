@@ -193,7 +193,7 @@ def fetch_sp500_wiki():
     """Fetches S&P 500 ticker list from Wikipedia."""
     try:
         url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-        headers = {"User-Agent": "Mozilla/5.0"}
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
         html = requests.get(url, headers=headers, timeout=10).text
         df = pd.read_html(io.StringIO(html))[0]
         tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
@@ -206,7 +206,9 @@ def fetch_sp500_wiki():
             df["Security"]
         ))
         return tickers, sectors, names
-    except Exception:
+    except Exception as e:
+        import streamlit as st
+        st.warning(f"⚠️ S&P 500 Liste konnte nicht von Wikipedia geladen werden ({str(e)}). Cloud-Server wird blockiert. Verwende Notfall-Liste (12 Ticker).")
         fallback = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META",
                      "TSLA", "BRK-B", "JPM", "V", "UNH", "LLY"]
         return fallback, {}, {}
