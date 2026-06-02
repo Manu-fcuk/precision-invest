@@ -192,12 +192,9 @@ st.markdown("""
 def fetch_sp500_wiki():
     """Fetches S&P 500 ticker list from Wikipedia."""
     try:
-        # We use a reliable, automatically updated open-source GitHub dataset instead of Wikipedia 
-        # to prevent Streamlit Cloud from being blocked as a bot.
-        url = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-        csv_text = requests.get(url, headers=headers, timeout=10).text
-        df = pd.read_csv(io.StringIO(csv_text))
+        # We use a static local CSV file because the Streamlit Cloud shared IPs 
+        # get severely rate-limited by both Wikipedia and GitHub Raw Content domains.
+        df = pd.read_csv("sp500_tickers.csv")
         
         tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
         sectors = dict(zip(tickers, df["GICS Sector"]))
