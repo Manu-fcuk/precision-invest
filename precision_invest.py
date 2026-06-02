@@ -211,7 +211,7 @@ def fetch_sp500_wiki():
         return fallback, {}, {}
 
 
-@st.cache_data(ttl=86400, show_spinner=False)
+@st.cache_data(ttl=3600, show_spinner=False)
 def fetch_benchmark(period="5y"):
     """Downloads S&P 500 benchmark data."""
     data = yf.download("^GSPC", period=period, progress=False, auto_adjust=True)["Close"]
@@ -232,7 +232,7 @@ def fetch_vix():
         return pd.Series(dtype=float)
 
 
-@st.cache_data(ttl=86400, show_spinner=False)
+@st.cache_data(ttl=3600, show_spinner=False)
 def get_company_info(ticker):
     """Returns company name and sector from yfinance info."""
     try:
