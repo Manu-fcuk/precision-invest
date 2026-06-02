@@ -192,23 +192,13 @@ st.markdown("""
 def fetch_sp500_wiki():
     """Fetches S&P 500 ticker list from Wikipedia."""
     try:
-        url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
-        html = requests.get(url, headers=headers, timeout=10).text
-        df = pd.read_html(io.StringIO(html))[0]
-        tickers = [t.replace(".", "-") for t in df["Symbol"].tolist()]
-        sectors = dict(zip(
-            [t.replace(".", "-") for t in df["Symbol"]],
-            df["GICS Sector"]
-        ))
-        names = dict(zip(
-            [t.replace(".", "-") for t in df["Symbol"]],
-            df["Security"]
-        ))
-        return tickers, sectors, names
+        import json
+        with open("sp500_data.json", "r") as f:
+            data = json.load(f)
+        return data["tickers"], data["sectors"], data["names"]
     except Exception as e:
         import streamlit as st
-        st.warning(f"⚠️ S&P 500 Liste konnte nicht von Wikipedia geladen werden ({str(e)}). Cloud-Server wird blockiert. Verwende Notfall-Liste (12 Ticker).")
+        st.warning(f"⚠️ Lokale S&P 500 Liste konnte nicht geladen werden ({str(e)}). Verwende Notfall-Liste (12 Ticker).")
         fallback = ["NVDA", "AAPL", "MSFT", "GOOGL", "AMZN", "META",
                      "TSLA", "BRK-B", "JPM", "V", "UNH", "LLY"]
         return fallback, {}, {}
