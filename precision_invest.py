@@ -603,7 +603,9 @@ with tab2:
     if st.button("🚀 S&P 500 Full Scan starten", key="scan_btn", type="primary"):
         with st.spinner("Scanning S&P 500... (Batch-Download, ~30-60 Sekunden)"):
             tickers, sector_map, name_map = fetch_sp500_wiki()
-            bm_scan = fetch_benchmark("2y")
+            # Fetch benchmark fresh so it perfectly aligns with the live stock data
+            bm_scan = yf.download("^GSPC", period="2y", progress=False, auto_adjust=True)["Close"]
+            if isinstance(bm_scan, pd.DataFrame): bm_scan = bm_scan["Close"]
             results = []
             batch_size = 50
 
@@ -780,9 +782,7 @@ with tab3:
                 st.error("Keine Daten verfügbar. Bitte Internetverbindung prüfen.")
                 st.stop()
 
-            bt_prices = pd.concat(all_price_frames, axis=1).ffill()
-
-            # Get benchmark for the same period
+            # Get benchmark for the same period first
             bm_bt = yf.download(
                 "^GSPC",
                 start=prefetch_start.strftime("%Y-%m-%d"),
@@ -790,6 +790,13 @@ with tab3:
                 progress=False,
                 auto_adjust=True
             )["Close"]
+            if isinstance(bm_bt, pd.DataFrame): bm_bt = bm_bt["Close"]
+
+            # Align all downloaded prices strictly to the benchmark index to prevent 
+            # any random ticker's glitch dates from polluting the rolling RS windows.
+            bt_prices = pd.concat(all_price_frames, axis=1)
+            bt_prices = bt_prices.reindex(bm_bt.index).ffill()
+
             if isinstance(bm_bt, pd.DataFrame):
                 bm_bt = bm_bt.iloc[:, 0]
             bm_bt = bm_bt.dropna()
